@@ -1,0 +1,230 @@
+============================================================
+POWER BI SETUP GUIDE – ORACLE (FINANCE TRANSACTION ANALYSER)
+============================================================
+1️⃣ INSTALL ORACLE CLIENT (ODAC – OFFICIAL METHOD)
+REQUIRED (DO THIS FIRST)
+🔗 Download from your link:
+https://www.oracle.com/database/technologies/net-downloads.html
+
+Install:
+Oracle Database Client (64-bit)
+
+Choose Administrator or Runtime
+
+Keep defaults
+
+Finish installation
+
+Reboot system
+
+✅ This automatically installs:
+
+Oracle client
+
+Oracle.DataAccess
+
+ODBC
+
+Required DLLs for Power BI
+
+❌ No ZIP extraction
+❌ No PATH manual hack
+
+2️⃣ VERIFY ORACLE CONNECTIVITY (OPTIONAL BUT SAFE)
+From CMD:
+
+bat
+Copy code
+sqlplus C##FINANCE/finance1234@localhost:1521/FREE
+Then:
+
+sql
+Copy code
+SELECT USER FROM dual;
+Expected:
+
+shell
+Copy code
+C##FINANCE
+Exit:
+
+sql
+Copy code
+EXIT
+3️⃣ OPEN POWER BI DESKTOP
+Use Power BI Desktop (64-bit)
+
+Close all previous PBIX if open
+
+4️⃣ CONNECT POWER BI TO ORACLE
+Power BI → Home → Get Data → Oracle database
+Server
+
+makefile
+Copy code
+localhost:1521/FREE
+Mode
+
+mathematica
+Copy code
+Import
+Click OK
+
+5️⃣ LOGIN CREDENTIALS (IMPORTANT)
+When prompted:
+
+Username: C##FINANCE
+
+Password: finance1234
+
+Authentication: Database
+
+Click Connect
+
+6️⃣ SELECT TABLE
+Navigator opens:
+
+Expand C##FINANCE
+
+Select FACT_TRANSACTIONS
+
+Click Load
+
+⛔ Do NOT transform here yet
+
+7️⃣ MIGRATION FROM OLD PHASES (CRITICAL PART)
+Your past phases:
+CSV-based dashboards
+
+SQLite DB
+
+File-based sources
+
+GOAL:
+✅ Keep all visuals
+✅ Keep all measures
+✅ Keep same X / Y / slicers
+❌ No rebuild
+
+8️⃣ REPLACE OLD SOURCE (SAFE METHOD)
+Power BI → Home → Transform data
+Select existing query
+(example: fact_transactions)
+
+Advanced Editor
+
+Replace entire content with:
+
+m
+Copy code
+let
+    Source =
+        Oracle.Database(
+            "localhost:1521/FREE",
+            [
+                Query = "
+                SELECT
+                    TXN_ID              AS txn_id,
+                    SESSION_ID          AS session_id,
+                    TXN_DATE            AS txn_date,
+                    TRANSACTION_REF_ID  AS transaction_ref_id,
+                    TRANSACTION_CODE    AS transaction_code,
+                    TRANSACTION_METHOD  AS transaction_method,
+                    TRANSACTION_CATEGORY AS transaction_category,
+                    TRANSACTION_NATURE  AS transaction_nature,
+                    COUNTERPARTY_NAME   AS counterparty_name,
+                    COUNTERPARTY_BANK_CODE AS counterparty_bank_code,
+                    DEBIT               AS debit,
+                    CREDIT              AS credit,
+                    AMOUNT              AS amount,
+                    BALANCE             AS balance,
+                    REMARKS             AS remarks,
+                    CREATED_AT          AS created_at
+                FROM C##FINANCE.FACT_TRANSACTIONS
+                "
+            ]
+        ),
+
+    #"Changed Type" =
+        Table.TransformColumnTypes(
+            Source,
+            {
+                {"txn_id", Int64.Type},
+                {"session_id", type text},
+                {"txn_date", type date},
+                {"transaction_ref_id", type text},
+                {"transaction_code", type text},
+                {"transaction_method", type text},
+                {"transaction_category", type text},
+                {"transaction_nature", type text},
+                {"counterparty_name", type text},
+                {"counterparty_bank_code", type text},
+                {"debit", type number},
+                {"credit", type number},
+                {"amount", type number},
+                {"balance", type number},
+                {"remarks", type text},
+                {"created_at", type datetime}
+            }
+        )
+in
+    #"Changed Type"
+Click Done
+
+Click Close & Apply
+
+9️⃣ REMOVE OLD FILE / SQLITE QUERIES
+If any of these exist:
+
+CSV queries
+
+SQLite tables
+
+FACT_TRANSACTIONS (2) duplicates
+
+Then:
+
+Right-click → Delete
+
+Keep only one table: fact_transactions
+
+⚠ Measures must already be bound to this table
+
+🔟 FINAL CHECKS
+Data Source Settings
+Power BI → File → Options → Data source settings
+
+You should see:
+
+sql
+Copy code
+Oracle – localhost:1521/FREE
+❌ No CSV paths
+❌ No SQLite DB
+
+1️⃣1️⃣ REFRESH FLOW (PRODUCTION)
+Now your flow is:
+
+mathematica
+Copy code
+Streamlit Upload
+→ Oracle (C##FINANCE.FACT_TRANSACTIONS)
+→ Power BI Refresh
+→ Dashboard auto-updates
+No exports
+No manual edits
+No rebuild
+
+1️⃣2️⃣ WHAT NOT TO DO
+❌ Do NOT use SYSTEM schema
+❌ Do NOT mix CSV + Oracle
+❌ Do NOT recreate visuals
+❌ Do NOT change column names now
+
+✅ FINAL STATUS
+✔ Enterprise DB (Oracle)
+✔ Single source of truth
+✔ Power BI model preserved
+✔ Measures safe
+✔ Ready for Azure / Gateway
+

@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from sqlalchemy import (
     create_engine, Column, Integer, String,
-    Numeric, Date, DateTime
+    Numeric, Date, DateTime, text
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
@@ -37,13 +37,10 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
-
 class FactTransaction(Base):
-    """
-    Model matches existing Oracle table structure.
-    txn_id is IDENTITY column - Oracle handles it automatically.
-    """
-    __tablename__ = "fact_transactions"
+    __tablename__ = "FACT_TRANSACTIONS"
+    __table_args__ = {"schema": "C##FINANCE"}
+
 
     txn_id = Column(Integer, primary_key=True)  # Oracle IDENTITY - no insert needed
 
@@ -75,3 +72,14 @@ def init_db():
     This function kept for compatibility but does nothing.
     """
     pass  # Tables pre-exist in Oracle
+
+# --- TEST CONNECTION ---
+def test_connection():
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT USER FROM dual"))
+            user = result.scalar()
+            print(f"✅ Oracle connection successful. Connected as: {user}")
+    except Exception as e:
+        print("❌ Oracle connection failed")
+        raise e

@@ -103,20 +103,37 @@ def load_all_tables(csv_path, session_id):
                 continue  # Skip rows with invalid dates
 
             # CRITICAL: Do NOT insert txn_id - Oracle generates it automatically
+
             db.execute(
                 text("""
-                     INSERT INTO fact_transactions (session_id, txn_date,
-                                                    transaction_ref_id, transaction_code,
-                                                    transaction_method, transaction_category,
-                                                    transaction_nature,
-                                                    counterparty_name, counterparty_bank_code,
-                                                    debit, credit, amount, balance, remarks)
-                     VALUES (:sid, TO_DATE(:dt, 'YYYY-MM-DD HH24:MI:SS'),
-                             :ref, :code,
-                             :method, :category,
+                     INSERT INTO C##FINANCE.FACT_TRANSACTIONS (session_id,
+                                                               txn_date,
+                                                               transaction_ref_id,
+                                                               transaction_code,
+                                                               transaction_method,
+                                                               transaction_category,
+                                                               transaction_nature,
+                                                               counterparty_name,
+                                                               counterparty_bank_code,
+                                                               debit,
+                                                               credit,
+                                                               amount,
+                                                               balance,
+                                                               remarks)
+                     VALUES (:sid,
+                             TO_DATE(:dt, 'YYYY-MM-DD HH24:MI:SS'),
+                             :ref,
+                             :code,
+                             :method,
+                             :category,
                              :nature,
-                             :cp_name, :bank,
-                             :debit, :credit, :amount, :bal, :remarks)
+                             :cp_name,
+                             :bank,
+                             :debit,
+                             :credit,
+                             :amount,
+                             :bal,
+                             :remarks)
                      """),
                 {
                     "sid": session_id,

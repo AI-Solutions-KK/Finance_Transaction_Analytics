@@ -9,6 +9,7 @@ import sys
 # -------------------------------------------------
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.main import controller
+from tools.cleanup_utils import cleanup_session_data, get_active_sessions
 
 # -------------------------------------------------
 # PAGE CONFIG
@@ -18,10 +19,9 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📊 Finance Transaction Analyzer (FTA)")
+st.title("📊 Finance Transaction Analytics (FTA)")
 st.markdown("---")
 
-# -------------------------------------------------
 # -------------------------------------------------
 # SIDEBAR
 # -------------------------------------------------
@@ -34,33 +34,17 @@ st.sidebar.markdown("### 🧭 Flow")
 st.sidebar.markdown(
     """
 <div style="font-size:14px; line-height:1.6;">
-
 <div> 1️⃣ 📤 <b>Upload Statement</b> &nbsp;➡️</div>
 <div style="margin-left:80px;">│</div>
-
 <div> 2️⃣ 👁️ <b>Preview Transactions</b> &nbsp;➡️</div>
 <div style="margin-left:80px;">│</div>
-
 <div> 3️⃣ 📊 <b>Load Analytics</b> &nbsp;➡️</div>
 <div style="margin-left:80px;">│</div>
-
-
 <div> 4️⃣ 📈 <b>View Dashboard</b> &nbsp;➡️</div>
-
-
 </div>
 """,
     unsafe_allow_html=True
 )
-
-st.sidebar.markdown("---")
-st.sidebar.markdown(
-    """
-🧹 **Before a new upload:**  
-Clear the session to reset analytics.
-"""
-)
-
 
 # -------------------------------------------------
 # SESSION STATE INIT
@@ -78,14 +62,45 @@ for key in SESSION_KEYS:
         st.session_state[key] = None
 
 # -------------------------------------------------
-# CLEAR SESSION (WORKING - DO NOT TOUCH)
+# CLEANUP OPTIONS (SIDEBAR)
 # -------------------------------------------------
 st.sidebar.markdown("---")
-if st.sidebar.button("🧹 Clear Session"):
-    for key in SESSION_KEYS:
-        st.session_state[key] = None
-    st.success("Session cleared. Upload a new statement.")
+st.sidebar.markdown("### 🧹 Data Management")
+
+# Option 1: Clear current session only
+if st.sidebar.button("🔄 Clear Current Session"):
+    if st.session_state["session_id"]:
+        success, msg = cleanup_session_data(session_id=st.session_state["session_id"])
+        if success:
+            for key in SESSION_KEYS:
+                st.session_state[key] = None
+            st.success("✅ Current session cleared")
+        else:
+            st.error(f"❌ {msg}")
+    else:
+        st.warning("No active session to clear")
     st.rerun()
+
+# Option 2: Clear ALL data (nuclear option for local use)
+if st.sidebar.button("🗑️ Clear All Data", type="secondary"):
+    success, msg = cleanup_session_data(cleanup_all=True)
+    if success:
+        for key in SESSION_KEYS:
+            st.session_state[key] = None
+        st.success("✅ All data cleared from database and files")
+    else:
+        st.error(f"❌ {msg}")
+    st.rerun()
+
+# Show active sessions (for debugging)
+with st.sidebar.expander("📊 Active Sessions"):
+    sessions = get_active_sessions()
+    if sessions:
+        for s in sessions:
+            st.text(f"ID: {s['session_id'][:8]}...")
+            st.caption(f"Records: {s['record_count']} | Last: {s['last_upload']}")
+    else:
+        st.caption("No active sessions")
 
 # -------------------------------------------------
 # STEP 1: UPLOAD
@@ -110,9 +125,9 @@ if uploaded_file:
                 st.session_state["current_df"] = result["df"]
                 st.session_state["session_id"] = result["session_id"]
                 st.session_state["csv_path"] = result["csv_path"]
-                st.success("Statement processed successfully")
+                st.success("✅ Statement processed successfully")
             except Exception as e:
-                st.error(f"Processing failed: {e}")
+                st.error(f"❌ Processing failed: {e}")
 
 # -------------------------------------------------
 # STEP 2: PREVIEW
@@ -139,14 +154,13 @@ if st.session_state["current_df"] is not None:
             )
 
 # -------------------------------------------------
-# -------------------------------------------------
-# STEP 3: LOAD ANALYTICS
-# -------------------------------------------------
 # STEP 3: LOAD ANALYTICS
 # -------------------------------------------------
 if st.session_state["current_df"] is not None and not st.session_state["db_loaded"]:
     st.markdown("---")
     st.subheader("3️⃣ 📊 Load Analytics")
+
+    st.info("💡 **Tip**: Use 'Clear All Data' in sidebar before loading new statement to avoid mixing data")
 
     if st.button("📊 Load Analytics"):
         with st.spinner("Loading analytics data..."):
@@ -164,9 +178,6 @@ if st.session_state["current_df"] is not None and not st.session_state["db_loade
             else:
                 st.error(msg)
 
-
-# -------------------------------------------------
-# STEP 4: VIEW DASHBOARD
 # -------------------------------------------------
 # STEP 4: VIEW DASHBOARD
 # -------------------------------------------------

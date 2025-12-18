@@ -47,3 +47,4 @@ components.html(
     """,
     height=530
 )
+st.balloons()

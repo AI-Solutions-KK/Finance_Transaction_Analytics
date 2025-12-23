@@ -56,3 +56,7 @@ logs/
 # Test files
 test_*.py
 *_test.py
+
+*.zip
+requirements_full.txt
+temp.zip

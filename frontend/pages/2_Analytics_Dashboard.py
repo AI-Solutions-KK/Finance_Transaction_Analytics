@@ -37,14 +37,12 @@ st.caption("← Use sidebar or browser back to return to Home")
 
 components.html(
     """
-    <iframe
-        title="Finanace_Transactions_Dashboard"
-        src="https://app.powerbi.com/view?r=eyJrIjoiOWRhOTY4NzQtMzNlNS00N2EzLTg1N2EtNGIxMjM5MzIzZGNmIiwidCI6ImJlNmRiMjQyLTRmZTctNDJiMi1hZTE1LTZkODQ4NmNkNDc3ZiJ9"
-        style="width:100%; height:100vh; border:none;"
-        frameborder="0"
-        allowfullscreen="true">
-    </iframe>
+    <iframe title="Dashboard_Finance_Analytics_Azure_Version"
+     width="800" height="450" 
+     src="https://app.powerbi.com/view?r=eyJrIjoiYjRhMjhmMGUtNjM3NC00OWRkLTg3MzgtYTc3N2MxNjIxOWY0IiwidCI6ImJlNmRiMjQyLTRmZTctNDJiMi1hZTE1LTZkODQ4NmNkNDc3ZiJ9" 
+     frameborder="0" allowFullScreen="true">
+     </iframe>
     """,
-    height=530
+    height=700
 )
 st.balloons()

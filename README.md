@@ -1,9 +1,14 @@
 # Bank Statement Analytics Platform
-## Industry Standard & Production Level
----
-live link - due to new site chrome/google may say unsafe(common  in azure free credits, need to buy subscription or buy new domain, can fix it ) but it safe 100 & 1 % safe 
+
+- Due to new site chrome/google may say unsafe(common  in azure free credits, need to buy subscription or buy new domain, can fix it ) but its safe 100 & 1 % safe 
+
+- live link 
 
 https://finance-transactions-app-ezggfbbkfnexd0bw.centralindia-01.azurewebsites.net/
+
+## Industry Standard & Production Level
+---
+
 ## Project Snap Shots 
 
 ### *Home-page*
